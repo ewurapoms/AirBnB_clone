@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 """Defines the BaseModel Inheritance Class."""
 
-from uuid import uuid4
-from datetime import datetime
+import uuid
 from models import storage
+from datetime import datetime
 
 
 class BaseModel:
