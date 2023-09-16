@@ -1,15 +1,15 @@
 #!/usr/bin/python3
-"""Module for TestHBNBCommand class."""
+"""Unittest Module: HBnB console"""
 
-from console import HBNBCommand
-from models.engine.file_storage import FileStorage
-import unittest
-import datetime
-from unittest.mock import patch
-import sys
-from io import StringIO
 import re
 import os
+import sys
+import unittest
+import datetime
+from io import StringIO
+from unittest.mock import patch
+from console import HBNBCommand
+from models.engine.file_storage import FileStorage
 
 
 class TestHBNBCommand(unittest.TestCase):
@@ -31,6 +31,77 @@ class TestHBNBCommand(unittest.TestCase):
         "intfoo": 248,
         "floatfoo": 9.8
     }
+
+    def create_class(self, classname):
+        with patch('sys.stdout', new=StringIO()) as f:
+            HBNBCommand().onecmd("create {}".format(classname))
+        uid = f.getvalue()[:-1]
+        self.assertTrue(len(uid) > 0)
+        return uid
+
+    def help_load_dict(self, rep):
+        regx = re.compile(r"^\[(.*)\] \((.*)\) (.*)$")
+        res = regx.match(rep)
+        self.assertIsNotNone(res)
+        s = res.group(3)
+        s = re.sub(r"(datetime\.datetime\([^)]*\))", "'\\1'", s)
+        d = json.loads(s.replace("'", '"'))
+        return d
+
+    def classes(self):
+        from models.base_model import BaseModel
+        from models.user import User
+        from models.state import State
+        from models.city import City
+        from models.amenity import Amenity
+        from models.place import Place
+        from models.review import Review
+
+        classes = {"BaseModel": BaseModel,
+                   "User": User,
+                   "State": State,
+                   "City": City,
+                   "Amenity": Amenity,
+                   "Place": Place,
+                   "Review": Review}
+        return classes
+
+    def attributes(self):
+        attributes = {
+            "BaseModel":
+                     {"id": str,
+                      "created_at": datetime.datetime,
+                      "updated_at": datetime.datetime},
+            "User":
+                     {"email": str,
+                      "password": str,
+                      "first_name": str,
+                      "last_name": str},
+            "State":
+                     {"name": str},
+            "City":
+                     {"state_id": str,
+                      "name": str},
+            "Amenity":
+                     {"name": str},
+            "Place":
+                     {"city_id": str,
+                      "user_id": str,
+                      "name": str,
+                      "description": str,
+                      "number_rooms": int,
+                      "number_bathrooms": int,
+                      "max_guest": int,
+                      "price_by_night": int,
+                      "latitude": float,
+                      "longitude": float,
+                      "amenity_ids": list},
+            "Review":
+                     {"place_id": str,
+                      "user_id": str,
+                      "text": str}
+        }
+        return attributes
 
     def setUp(self):
         if os.path.isfile("file.json"):
@@ -568,7 +639,6 @@ EOF  all  count  create  destroy  help  quit  show  update
         self.assertEqual(msg, "** value missing **")
 
     def test_do_update_error_advanced(self):
-        """Tests update() command with errors."""
         uid = self.create_class("BaseModel")
         with patch('sys.stdout', new=StringIO()) as f:
             HBNBCommand().onecmd(".update()")
@@ -599,77 +669,6 @@ EOF  all  count  create  destroy  help  quit  show  update
             HBNBCommand().onecmd('BaseModel.update("{}", "name")'.format(uid))
         msg = f.getvalue()[:-1]
         self.assertEqual(msg, "** value missing **")
-
-    def create_class(self, classname):
-        with patch('sys.stdout', new=StringIO()) as f:
-            HBNBCommand().onecmd("create {}".format(classname))
-        uid = f.getvalue()[:-1]
-        self.assertTrue(len(uid) > 0)
-        return uid
-
-    def help_load_dict(self, rep):
-        regx = re.compile(r"^\[(.*)\] \((.*)\) (.*)$")
-        res = regx.match(rep)
-        self.assertIsNotNone(res)
-        s = res.group(3)
-        s = re.sub(r"(datetime\.datetime\([^)]*\))", "'\\1'", s)
-        d = json.loads(s.replace("'", '"'))
-        return d
-
-    def classes(self):
-        from models.base_model import BaseModel
-        from models.user import User
-        from models.state import State
-        from models.city import City
-        from models.amenity import Amenity
-        from models.place import Place
-        from models.review import Review
-
-        classes = {"BaseModel": BaseModel,
-                   "User": User,
-                   "State": State,
-                   "City": City,
-                   "Amenity": Amenity,
-                   "Place": Place,
-                   "Review": Review}
-        return classes
-
-    def attributes(self):
-        attributes = {
-            "BaseModel":
-                     {"id": str,
-                      "created_at": datetime.datetime,
-                      "updated_at": datetime.datetime},
-            "User":
-                     {"email": str,
-                      "password": str,
-                      "first_name": str,
-                      "last_name": str},
-            "State":
-                     {"name": str},
-            "City":
-                     {"state_id": str,
-                      "name": str},
-            "Amenity":
-                     {"name": str},
-            "Place":
-                     {"city_id": str,
-                      "user_id": str,
-                      "name": str,
-                      "description": str,
-                      "number_rooms": int,
-                      "number_bathrooms": int,
-                      "max_guest": int,
-                      "price_by_night": int,
-                      "latitude": float,
-                      "longitude": float,
-                      "amenity_ids": list},
-            "Review":
-                     {"place_id": str,
-                      "user_id": str,
-                      "text": str}
-        }
-        return attributes
 
 
 if __name__ == "__main__":
