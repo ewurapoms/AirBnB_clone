@@ -16,7 +16,7 @@ class HBNBCommand(cmd.Cmd):
         self.do_cmd(arg)
 
     def do_cmd(self, arg):
-        pair = re.search(r"^(\w*)\.(\w+)(?:\(([^)]*)\))$", line)
+        pair = re.search(r"^(\w*)\.(\w+)(?:\(([^)]*)\))$", arg)
         if not pair:
             return arg
         classname = pair.group(1)
@@ -95,13 +95,13 @@ class HBNBCommand(cmd.Cmd):
         if arg == "" or arg is None:
             print("** class name missing **")
         else:
-            words = arg.split(' ')
-            if words[0] not in storage.classes():
+            comms = arg.split(' ')
+            if comms[0] not in storage.classes():
                 print("** class doesn't exist **")
-            elif len(words) < 2:
+            elif len(comms) < 2:
                 print("** instance id missing **")
             else:
-                key = "{}.{}".format(words[0], words[1])
+                key = "{}.{}".format(comms[0], comms[1])
                 if key not in storage.all():
                     print("** no instance found **")
                 else:
