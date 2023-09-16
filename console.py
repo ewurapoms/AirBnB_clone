@@ -13,49 +13,41 @@ class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
 
     def default(self, arg):
-        _dict = {
-            "all": self.do_all,
-            "show": self.do_show,
-            "destroy": self.do_destroy,
-            "count": self.do_count,
-            "update": self.do_update
-        }
-        pair = re.search(r"\.", arg)
-        if pair is not None:
-            argl = [arg[:pair.span()[0]], arg[pair.span()[1]:]]
-            pair = re.search(r"\((.*?)\)", argl[1])
-            if pair is not None:
-                command = [argl[1][:pair.span()[0]], pair.group()[1:-1]]
-                if command[0] in _dict.keys():
-                    call = "{} {}".format(argl[0], command[1])
-                    return _dict[command[0]](call)
-        print("*** Unknown syntax: {}".format(arg))
-        return False
+        self.do_cmd(arg)
 
-    def update_dict(self, classname, uid, temp):
-        """created method for the update()"""
-        serie = temp.replace("'", '"')
-        deserie = json.loads(serie)
-        if not classname:
-            print("** class name missing **")
-        elif classname not in storage.classes():
-            print("** class doesn't exist **")
-        elif uid is None:
-            print("** instance id missing **")
+    def do_cmd(self, arg):
+        pair = re.search(r"^(\w*)\.(\w+)(?:\(([^)]*)\))$", line)
+        if not pair:
+            return arg
+        classname = pair.group(1)
+        method = pair.group(2)
+        args = pair.group(3)
+        pair_uid_with_args = re.search('^"([^"]*)"(?:, (.*))?$', args)
+        if pair_uid_with_args:
+            uid = pair_uid_with_args.group(1)
+            attr_or_dict = pair_uid_with_args.group(2)
         else:
-            key = "{}.{}".format(classname, uid)
-            if key not in storage.all():
-                print("** no instance found **")
-            else:
-                attributes = storage.attributes()[classname]
-                for attr, val in deserie.items():
-                    if attr in attributes:
-                        val = attributes[attribute](val)
-                    setattr(storage.all()[key], attr, val)
-                storage.all()[key].save()
+            uid = args
+            attr_or_dict = False
+
+        attr_and_value = ""
+        if method == "update" and attr_or_dict:
+            pair_dict = re.search('^({.*})$', attr_or_dict)
+            if pair_dict:
+                self.update_dict(classname, uid, pair_dict.group(1))
+                return ""
+            pair_attr_and_value = re.search(
+                '^(?:"([^"]*)")?(?:, (.*))?$', attr_or_dict)
+            if pair_attr_and_value:
+                attr_and_value = (pair_attr_and_value.group(
+                    1) or "") + " " + (pair_attr_and_value.group(2) or "")
+        command = method + " " + classname + " " + uid + " " + attr_and_value
+        self.onecmd(command)
+        return command
 
     def do_EOF(self, arg):
-        """Handles End Of File"""
+        """Handles End Of File character.
+        """
         print()
         return True
 
@@ -81,13 +73,13 @@ class HBNBCommand(cmd.Cmd):
         if arg == "" or arg is None:
             print("** class name missing **")
         else:
-            comms = arg.split(' ')
-            if comms[0] not in storage.classes():
+            words = arg.split(' ')
+            if words[0] not in storage.classes():
                 print("** class doesn't exist **")
-            elif len(comms) < 2:
+            elif len(words) < 2:
                 print("** instance id missing **")
             else:
-                key = "{}.{}".format(comms[0], comms[1])
+                key = "{}.{}".format(words[0], words[1])
                 if key not in storage.all():
                     print("** no instance found **")
                 else:
@@ -134,6 +126,28 @@ class HBNBCommand(cmd.Cmd):
                 ele for ele in storage.all() if ele.startswith(
                     comms[0] + '.')]
             print(len(pairs))
+
+    def update_dict(self, classname, uid, s_dict):
+        """Helper method for update() with a dictionary."""
+        serie = s_dict.replace("'", '"')
+        deserie = json.loads(serie)
+        if not classname:
+            print("** class name missing **")
+        elif classname not in storage.classes():
+            print("** class doesn't exist **")
+        elif uid is None:
+            print("** instance id missing **")
+        else:
+            key = "{}.{}".format(classname, uid)
+            if key not in storage.all():
+                print("** no instance found **")
+            else:
+                attributes = storage.attributes()[classname]
+                for attr, val in deserie.items():
+                    if attr in attributes:
+                        val = attributes[attribute](val)
+                    setattr(storage.all()[key], attr, val)
+                storage.all()[key].save()
 
     def do_update(self, arg):
         if arg == "" or arg is None:
