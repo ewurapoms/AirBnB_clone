@@ -183,7 +183,7 @@ EOF  all  count  create  destroy  help  quit  show  update
 (hbnb) quit
 $
 ```
-## Commands, its Usage & Description
+## Commands, its Usage & Descriptions
 
 Some basic commands recognized by the interpreter are:
 
