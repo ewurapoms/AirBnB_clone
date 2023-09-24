@@ -1,0 +1,20 @@
+.filters {
+    background-color: white;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px;
+    display: flex;
+    height: 70px;
+    width: 100%;
+  }
+  
+  .filters button {
+    align-content: center;
+    background-color: #FF5A5F;
+    border: 0;
+    border-radius: 4px;
+    color: #FFFFFF;
+    font-size: 18px;
+    height: 48px;
+    margin: auto 30px auto auto;
+    width: 20%;
+  }
